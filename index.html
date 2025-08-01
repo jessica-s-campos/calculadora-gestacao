@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Gestação</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; }
+    h1 { color: #a52a2a; }
+    label, input, button { display: block; margin-top: 10px; width: 100%; }
+    .result { background: #f0f0f0; padding: 15px; margin-top: 20px; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🍼 Calculadora de Gestação</h1>
+
+  <div class="result" id="resultado" style="display: none;"></div>
+
+  <label for="semana">Consultar início de uma semana específica:</label>
+  <input type="number" id="semana" placeholder="Digite o número da semana">
+  <button onclick="consultarSemana()">Consultar Semana</button>
+  <div id="resSemana" class="result" style="display: none;"></div>
+
+  <script>
+    let dataDum;
+
+    function calcularGestacao() {
+      dataDum = new Date(2025,5,1);
+      const hoje = new Date();
+
+      dataDum.setHours(0, 0, 0, 0);
+      hoje.setHours(0, 0, 0, 0);
+
+      const diasTotais = Math.floor((hoje - dataDum) / (1000 * 60 * 60 * 24));
+      const semanas = Math.floor(diasTotais / 7);
+      const dias = diasTotais % 7;
+
+      const dpp = new Date(dataDum);
+      dpp.setDate(dpp.getDate() + 7);
+      dpp.setMonth(dpp.getMonth() + 9);
+
+      const proximaVirada = new Date(hoje);
+      const diasParaVirada = 7 - dias;
+      proximaVirada.setDate(hoje.getDate() + diasParaVirada);
+
+      document.getElementById('resultado').style.display = 'block';
+      document.getElementById('resultado').innerHTML = `
+        🤰 Gestação: <strong>${semanas}</strong> semanas e <strong>${dias}</strong> dias.<br>
+        📅 DPP: <strong>${dpp.toLocaleDateString('pt-BR')}</strong><br>
+        🔄 Próxima virada: <strong>${proximaVirada.toLocaleDateString('pt-BR')}</strong>
+      `;
+    }
+
+    function consultarSemana() {
+      const semana = parseInt(document.getElementById('semana').value);
+      if (isNaN(semana) || semana < 0) return alert('Informe uma semana válida.');
+      if (!dataDum) return alert('Calcule primeiro a gestação para definir a DUM.');
+
+      const dataInicio = new Date(dataDum);
+      dataInicio.setDate(dataDum.getDate() + (semana * 7));
+
+      document.getElementById('resSemana').style.display = 'block';
+      document.getElementById('resSemana').innerHTML = `
+        📆 A semana <strong>${semana}</strong> começa em: <strong>${dataInicio.toLocaleDateString('pt-BR')}</strong>
+      `;
+    }
+	
+	calcularGestacao();
+  </script>
+</body>
+</html>
