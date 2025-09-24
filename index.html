@@ -9,13 +9,96 @@
     h1 { color: #a52a2a; }
     label, input, button { display: block; margin-top: 10px; width: 100%; }
     .result { background: #f0f0f0; padding: 15px; margin-top: 20px; border-radius: 8px; }
+	
+	.gestacao-table {
+	  width: 100%;
+	  border-collapse: collapse;
+	  margin-top: 16px;
+	  font-size: 14px;
+	}
+	.gestacao-table caption {
+	  text-align: left;
+	  font-weight: bold;
+	  margin-bottom: 8px;
+	}
+	.gestacao-table th, .gestacao-table td {
+	  border: 1px solid #ddd;
+	  padding: 8px;
+	}
+	.gestacao-table thead th {
+	  background: #f7ecec;
+	}
+	.gestacao-table tbody tr:nth-child(even) td {
+	  background: #fafafa;
+	}
+	.tag-trimestre {
+	  font-weight: bold;
+	  color: #7a3e3e;
+	  white-space: nowrap;
+	}
   </style>
 </head>
 <body>
   <h1>🍼 Calculadora de Gestação</h1>
 
   <div class="result" id="resultado" style="display: none;"></div>
+	
+	<table class="gestacao-table" aria-describedby="tabela-meses-semanas">
+  <caption id="tabela-meses-semanas">Mapa de meses × semanas (obstétrico)</caption>
+  <thead>
+    <tr>
+      <th>Trimestre</th>
+      <th>Mês</th>
+      <th>Faixa de semanas</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Primeiro trimestre -->
+    <tr>
+      <td class="tag-trimestre" rowspan="3">1º trimestre</td>
+      <td>1º mês</td>
+      <td>1 a 4 semanas</td>
+    </tr>
+    <tr>
+      <td>2º mês</td>
+      <td>5 a 8 semanas</td>
+    </tr>
+    <tr>
+      <td>3º mês</td>
+      <td>9 a 12 semanas</td>
+    </tr>
 
+    <!-- Segundo trimestre -->
+    <tr>
+      <td class="tag-trimestre" rowspan="3">2º trimestre</td>
+      <td>4º mês</td>
+      <td>13 a 16 semanas</td>
+    </tr>
+    <tr>
+      <td>5º mês</td>
+      <td>17 a 21 semanas</td>
+    </tr>
+    <tr>
+      <td>6º mês</td>
+      <td>22 a 26 semanas</td>
+    </tr>
+
+    <!-- Terceiro trimestre -->
+    <tr>
+      <td class="tag-trimestre" rowspan="3">3º trimestre</td>
+      <td>7º mês</td>
+      <td>27 a 30 semanas</td>
+    </tr>
+    <tr>
+      <td>8º mês</td>
+      <td>31 a 35 semanas</td>
+    </tr>
+    <tr>
+      <td>9º mês</td>
+      <td>36 a 41 semanas</td>
+    </tr>
+  </tbody>
+</table>
   <label for="semana">Consultar início de uma semana específica:</label>
   <input type="number" id="semana" placeholder="Digite o número da semana">
   <button onclick="consultarSemana()">Consultar Semana</button>
