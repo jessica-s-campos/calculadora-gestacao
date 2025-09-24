@@ -20,52 +20,113 @@
   <input type="number" id="semana" placeholder="Digite o número da semana">
   <button onclick="consultarSemana()">Consultar Semana</button>
   <div id="resSemana" class="result" style="display: none;"></div>
+  
+  <label>Digite o mês (1 a 9):</label>
+  <input type="number" id="mes" min="1" max="9">
+  <button onclick="consultarMes()">Consultar Início do Mês</button>	
+  <div id="resMes" style="display:none;"></div>
 
-  <script>
-    let dataDum;
+ <script>
+  let dataDum;
 
-    function calcularGestacao() {
-      dataDum = new Date(2025,5,1);
-      const hoje = new Date();
+  // Utilitários
+  const MS_DIA = 24 * 60 * 60 * 1000;
+  const startsDiasObst = [0, 28, 56, 98, 126, 154, 182, 210, 238]; // inícios dos meses (em dias desde a DUM)
 
-      dataDum.setHours(0, 0, 0, 0);
-      hoje.setHours(0, 0, 0, 0);
+  function toStartOfDay(d) { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+  function daysBetween(a, b) { return Math.floor((toStartOfDay(b) - toStartOfDay(a)) / MS_DIA); }
 
-      const diasTotais = Math.floor((hoje - dataDum) / (1000 * 60 * 60 * 24));
-      const semanas = Math.floor(diasTotais / 7);
-      const dias = diasTotais % 7;
-
-      const dpp = new Date(dataDum);
-      dpp.setDate(dpp.getDate() + 7);
-      dpp.setMonth(dpp.getMonth() + 9);
-
-      const proximaVirada = new Date(hoje);
-      const diasParaVirada = 7 - dias;
-      proximaVirada.setDate(hoje.getDate() + diasParaVirada);
-
-      document.getElementById('resultado').style.display = 'block';
-      document.getElementById('resultado').innerHTML = `
-        🤰 Gestação: <strong>${semanas}</strong> semanas e <strong>${dias}</strong> dias.<br>
-        📅 DPP: <strong>${dpp.toLocaleDateString('pt-BR')}</strong><br>
-        🔄 Próxima virada: <strong>${proximaVirada.toLocaleDateString('pt-BR')}</strong>
-      `;
+  // Calcula mês obstétrico atual e dias dentro dele
+  function mesObstetricoAtual(dum, hoje) {
+    const d = daysBetween(dum, hoje);
+    let mesOrdinal = 1;
+    for (let i = startsDiasObst.length - 1; i >= 0; i--) {
+      if (d >= startsDiasObst[i]) { mesOrdinal = i + 1; break; }
     }
+    if (mesOrdinal > 9) mesOrdinal = 9;
 
-    function consultarSemana() {
-      const semana = parseInt(document.getElementById('semana').value);
-      if (isNaN(semana) || semana < 0) return alert('Informe uma semana válida.');
-      if (!dataDum) return alert('Calcule primeiro a gestação para definir a DUM.');
+    const inicio = new Date(dum);
+    inicio.setDate(inicio.getDate() + startsDiasObst[mesOrdinal - 1]);
 
-      const dataInicio = new Date(dataDum);
-      dataInicio.setDate(dataDum.getDate() + (semana * 7));
+    const limiteFimDias = (mesOrdinal < 9 ? startsDiasObst[mesOrdinal] : 280); // 280 = 40 semanas
+    const fim = new Date(dum);
+    fim.setDate(fim.getDate() + limiteFimDias - 1);
 
-      document.getElementById('resSemana').style.display = 'block';
-      document.getElementById('resSemana').innerHTML = `
-        📆 A semana <strong>${semana}</strong> começa em: <strong>${dataInicio.toLocaleDateString('pt-BR')}</strong>
-      `;
-    }
-	
-	calcularGestacao();
-  </script>
+    const diasNoMes = Math.max(0, daysBetween(inicio, hoje)); // quantos dias já transcorreram dentro do mês atual
+    return { mesOrdinal, inicio, fim, diasNoMes, diasDesdeDum: d };
+  }
+
+  // Início de um mês (obstétrico)
+  function inicioMesObstetrico(dum, mes) {
+    const d = new Date(dum);
+    d.setDate(d.getDate() + startsDiasObst[mes - 1]);
+    d.setHours(0,0,0,0);
+    return d;
+  }
+
+  function calcularGestacao() {
+    dataDum = new Date(2025, 5, 1); // 01/06/2025 (mês 0-based)
+    const hoje = new Date();
+
+    dataDum.setHours(0,0,0,0);
+    hoje.setHours(0,0,0,0);
+
+    const diasTotais = daysBetween(dataDum, hoje);
+    const semanas = Math.floor(diasTotais / 7);
+    const dias = diasTotais % 7;
+
+    // DPP (Naegele): DUM + 280 dias
+    const dpp = new Date(dataDum);
+    dpp.setDate(dpp.getDate() + 280);
+
+    // Próxima virada de semana
+    const diasParaVirada = (7 - (dias % 7)) % 7 || 7; // garante que, se estiver cravado, some 7
+    const proximaVirada = new Date(hoje);
+    proximaVirada.setDate(proximaVirada.getDate() + diasParaVirada);
+
+    // Mês obstétrico atual
+    const obs = mesObstetricoAtual(dataDum, hoje);
+
+    document.getElementById('resultado').style.display = 'block';
+    document.getElementById('resultado').innerHTML = `
+      🤰 Gestação: <strong>${semanas}</strong> semanas e <strong>${dias}</strong> dias.<br>
+      📅 DPP: <strong>${dpp.toLocaleDateString('pt-BR')}</strong><br>
+      🔄 Próxima virada de semana: <strong>${proximaVirada.toLocaleDateString('pt-BR')}</strong><br>
+      🗓️ <u>Mês (obstétrico)</u>: você está no <strong>${obs.mesOrdinal}º mês</strong>
+      — começou em <strong>${obs.inicio.toLocaleDateString('pt-BR')}</strong>
+      (há <strong>${obs.diasNoMes}</strong> dias) e vai até <strong>${obs.fim.toLocaleDateString('pt-BR')}</strong>.
+    `;
+  }
+
+  function consultarSemana() {
+    const semana = parseInt(document.getElementById('semana').value);
+    if (isNaN(semana) || semana < 0) return alert('Informe uma semana válida.');
+    if (!dataDum) return alert('Calcule primeiro a gestação para definir a DUM.');
+
+    const dataInicio = new Date(dataDum);
+    dataInicio.setDate(dataInicio.getDate() + (semana * 7));
+
+    document.getElementById('resSemana').style.display = 'block';
+    document.getElementById('resSemana').innerHTML = `
+      📆 A semana <strong>${semana}</strong> começa em: <strong>${dataInicio.toLocaleDateString('pt-BR')}</strong>
+    `;
+  }
+
+  function consultarMes() {
+    const mes = parseInt(document.getElementById('mes').value);
+    if (isNaN(mes) || mes < 1 || mes > 9) return alert('Informe um mês válido entre 1 e 9.');
+    if (!dataDum) return alert('Calcule primeiro a gestação para definir a DUM.');
+
+    const inicio = inicioMesObstetrico(dataDum, mes);
+    document.getElementById('resMes').style.display = 'block';
+    document.getElementById('resMes').innerHTML = `
+      🗓️ O <strong>${mes}º mês</strong> da gestação (obstétrico) começa em:
+      <strong>${inicio.toLocaleDateString('pt-BR')}</strong>
+    `;
+  }
+
+  calcularGestacao();
+</script>
+
 </body>
 </html>
